@@ -1,0 +1,29 @@
+# IntelliJ IDEA
+.idea/
+*.iml
+out/
+
+# Java and Maven
+**/target/
+*.class
+*.jar
+*.war
+*.log
+
+# Node.js and React
+**/node_modules/
+**/dist/
+**/.vite/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Operating systems
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp

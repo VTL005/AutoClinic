@@ -1,0 +1,56 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+
+security:
+  jwt:
+    # Tạm thời tắt vì Identity Service chưa được xây dựng.
+    # Khi Identity Service hoàn thành, chỉ cần chuyển thành true.
+    enabled: false
+
+    # JWT_SECRET sẽ được truyền qua biến môi trường.
+    # Không lưu khóa bí mật thật trong Git.
+    secret: ${JWT_SECRET:}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include:
+          - health
+          - info
+          - metrics
+
+  endpoint:
+    health:
+      show-details: always
+
+  health:
+    circuitbreakers:
+      enabled: true
+
+info:
+  application:
+    name: ${spring.application.name}
+    description: API Gateway for automotive repair and maintenance system
+    version: 0.0.1-SNAPSHOT
+
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        register-health-indicator: true
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        permitted-number-of-calls-in-half-open-state: 3
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+
+  timelimiter:
+    configs:
+      default:
+        timeout-duration: 5s

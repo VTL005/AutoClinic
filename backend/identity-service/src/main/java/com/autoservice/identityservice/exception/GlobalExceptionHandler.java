@@ -1,0 +1,181 @@
+package com.autoservice.identityservice.exception;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.UUID;
+
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import com.autoservice.identityservice.common.ErrorResponse;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolationException;
+
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    private static final String TRACE_ID_HEADER = "X-Trace-Id";
+
+    @ExceptionHandler(DuplicateResourceException.class)
+    public ResponseEntity<ErrorResponse> handleDuplicateResource(
+            DuplicateResourceException exception,
+            HttpServletRequest request
+    ) {
+        return buildResponse(
+                HttpStatus.CONFLICT,
+                exception.getErrorCode(),
+                exception.getMessage(),
+                Map.of(),
+                request
+        );
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNotFound(
+            ResourceNotFoundException exception,
+            HttpServletRequest request
+    ) {
+        return buildResponse(
+                HttpStatus.NOT_FOUND,
+                exception.getErrorCode(),
+                exception.getMessage(),
+                Map.of(),
+                request
+        );
+    }
+
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<ErrorResponse> handleBusinessException(
+            BusinessException exception,
+            HttpServletRequest request
+    ) {
+        return buildResponse(
+                HttpStatus.BAD_REQUEST,
+                exception.getErrorCode(),
+                exception.getMessage(),
+                Map.of(),
+                request
+        );
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleValidation(
+            MethodArgumentNotValidException exception,
+            HttpServletRequest request
+    ) {
+        Map<String, String> fieldErrors =
+                new LinkedHashMap<>();
+
+        for (FieldError fieldError
+                : exception.getBindingResult().getFieldErrors()) {
+            fieldErrors.putIfAbsent(
+                    fieldError.getField(),
+                    fieldError.getDefaultMessage()
+            );
+        }
+
+        return buildResponse(
+                HttpStatus.BAD_REQUEST,
+                ErrorCode.VALIDATION_ERROR,
+                "Dữ liệu đầu vào không hợp lệ",
+                fieldErrors,
+                request
+        );
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ErrorResponse>
+    handleConstraintViolation(
+            ConstraintViolationException exception,
+            HttpServletRequest request
+    ) {
+        Map<String, String> fieldErrors =
+                new LinkedHashMap<>();
+
+        exception.getConstraintViolations()
+                .forEach(violation -> fieldErrors.put(
+                        violation.getPropertyPath().toString(),
+                        violation.getMessage()
+                ));
+
+        return buildResponse(
+                HttpStatus.BAD_REQUEST,
+                ErrorCode.VALIDATION_ERROR,
+                "Dữ liệu đầu vào không hợp lệ",
+                fieldErrors,
+                request
+        );
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAccessDenied(
+            AccessDeniedException exception,
+            HttpServletRequest request
+    ) {
+        return buildResponse(
+                HttpStatus.FORBIDDEN,
+                ErrorCode.ACCESS_DENIED,
+                "Bạn không có quyền thực hiện thao tác này",
+                Map.of(),
+                request
+        );
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleUnexpectedException(
+            Exception exception,
+            HttpServletRequest request
+    ) {
+        return buildResponse(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                ErrorCode.INTERNAL_SERVER_ERROR,
+                "Hệ thống gặp lỗi. Vui lòng thử lại sau.",
+                Map.of(),
+                request
+        );
+    }
+
+    private ResponseEntity<ErrorResponse> buildResponse(
+            HttpStatus status,
+            ErrorCode errorCode,
+            String message,
+            Map<String, String> fieldErrors,
+            HttpServletRequest request
+    ) {
+        String traceId = resolveTraceId(request);
+
+        ErrorResponse response = ErrorResponse.of(
+                errorCode.name(),
+                message,
+                fieldErrors,
+                request.getRequestURI(),
+                traceId
+        );
+
+        return ResponseEntity
+                .status(status)
+                .header(TRACE_ID_HEADER, traceId)
+                .body(response);
+    }
+
+    private String resolveTraceId(
+            HttpServletRequest request
+    ) {
+        String traceId = request.getHeader(
+                TRACE_ID_HEADER
+        );
+
+        if (traceId == null || traceId.isBlank()) {
+            return UUID.randomUUID().toString();
+        }
+
+        return traceId;
+    }
+}

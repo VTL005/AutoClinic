@@ -17,7 +17,8 @@ public class RouteConfig {
                         .path(
                                 "/api/v1/auth/**",
                                 "/api/v1/users/**",
-                                "/api/v1/mechanics/**"
+                                "/api/v1/mechanics/**",
+                                "/api/v1/admin/**"
                         )
                         .filters(filter -> filter
                                 .circuitBreaker(config -> config

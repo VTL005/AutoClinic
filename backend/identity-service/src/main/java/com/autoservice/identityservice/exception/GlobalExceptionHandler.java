@@ -178,7 +178,8 @@ public class GlobalExceptionHandler {
             case ACCOUNT_LOCKED ->
                     HttpStatus.LOCKED;
 
-            case USER_NOT_FOUND ->
+            case USER_NOT_FOUND,
+                 MECHANIC_PROFILE_NOT_FOUND ->
                     HttpStatus.NOT_FOUND;
 
             case USERNAME_ALREADY_EXISTS,

@@ -1,0 +1,21 @@
+package com.autoservice.vehicleservice.exception;
+
+public enum ErrorCode {
+
+    VALIDATION_ERROR,
+
+    INVALID_VIN,
+
+    VEHICLE_NOT_FOUND,
+
+    VIN_ALREADY_EXISTS,
+    LICENSE_PLATE_ALREADY_EXISTS,
+
+    VIN_LOOKUP_FAILED,
+    VIN_INFORMATION_NOT_FOUND,
+
+    AUTHENTICATION_REQUIRED,
+    ACCESS_DENIED,
+
+    INTERNAL_SERVER_ERROR
+}

@@ -18,7 +18,8 @@ public class RouteConfig {
                                 "/api/v1/auth/**",
                                 "/api/v1/users/**",
                                 "/api/v1/mechanics/**",
-                                "/api/v1/admin/**"
+                                "/api/v1/admin/users/**",
+                                "/api/v1/admin/mechanics/**"
                         )
                         .filters(filter -> filter
                                 .circuitBreaker(config -> config
@@ -33,7 +34,11 @@ public class RouteConfig {
 
                 // Vehicle Service - port 8082
                 .route("vehicle-service", route -> route
-                        .path("/api/v1/vehicles/**")
+                        .path(
+                                "/api/v1/vehicles/**",
+                                "/api/v1/admin/vehicles/**",
+                                "/api/v1/vin/**"
+                        )
                         .filters(filter -> filter
                                 .circuitBreaker(config -> config
                                         .setName("vehicleServiceCircuitBreaker")

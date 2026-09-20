@@ -1,9 +1,9 @@
 package com.autoservice.identityservice.exception;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.UUID;
-
+import com.autoservice.identityservice.common.ErrorResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolationException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,18 +13,20 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import com.autoservice.identityservice.common.ErrorResponse;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.UUID;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.ConstraintViolationException;
-
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    private static final String TRACE_ID_HEADER = "X-Trace-Id";
+    private static final String TRACE_ID_HEADER =
+            "X-Trace-Id";
 
     @ExceptionHandler(DuplicateResourceException.class)
-    public ResponseEntity<ErrorResponse> handleDuplicateResource(
+    public ResponseEntity<ErrorResponse>
+    handleDuplicateResource(
             DuplicateResourceException exception,
             HttpServletRequest request
     ) {
@@ -52,12 +54,17 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(BusinessException.class)
-    public ResponseEntity<ErrorResponse> handleBusinessException(
+    public ResponseEntity<ErrorResponse>
+    handleBusinessException(
             BusinessException exception,
             HttpServletRequest request
     ) {
+        HttpStatus status = statusFor(
+                exception.getErrorCode()
+        );
+
         return buildResponse(
-                HttpStatus.BAD_REQUEST,
+                status,
                 exception.getErrorCode(),
                 exception.getMessage(),
                 Map.of(),
@@ -74,7 +81,9 @@ public class GlobalExceptionHandler {
                 new LinkedHashMap<>();
 
         for (FieldError fieldError
-                : exception.getBindingResult().getFieldErrors()) {
+                : exception.getBindingResult()
+                .getFieldErrors()) {
+
             fieldErrors.putIfAbsent(
                     fieldError.getField(),
                     fieldError.getDefaultMessage()
@@ -84,7 +93,7 @@ public class GlobalExceptionHandler {
         return buildResponse(
                 HttpStatus.BAD_REQUEST,
                 ErrorCode.VALIDATION_ERROR,
-                "Dữ liệu đầu vào không hợp lệ",
+                "Dữ liệu đầu vào không hợp lệ.",
                 fieldErrors,
                 request
         );
@@ -100,15 +109,19 @@ public class GlobalExceptionHandler {
                 new LinkedHashMap<>();
 
         exception.getConstraintViolations()
-                .forEach(violation -> fieldErrors.put(
-                        violation.getPropertyPath().toString(),
-                        violation.getMessage()
-                ));
+                .forEach(violation ->
+                        fieldErrors.put(
+                                violation
+                                        .getPropertyPath()
+                                        .toString(),
+                                violation.getMessage()
+                        )
+                );
 
         return buildResponse(
                 HttpStatus.BAD_REQUEST,
                 ErrorCode.VALIDATION_ERROR,
-                "Dữ liệu đầu vào không hợp lệ",
+                "Dữ liệu đầu vào không hợp lệ.",
                 fieldErrors,
                 request
         );
@@ -122,24 +135,61 @@ public class GlobalExceptionHandler {
         return buildResponse(
                 HttpStatus.FORBIDDEN,
                 ErrorCode.ACCESS_DENIED,
-                "Bạn không có quyền thực hiện thao tác này",
+                "Bạn không có quyền thực hiện thao tác này.",
                 Map.of(),
                 request
         );
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleUnexpectedException(
+    public ResponseEntity<ErrorResponse>
+    handleUnexpectedException(
             Exception exception,
             HttpServletRequest request
     ) {
+        log.error(
+                "Unexpected error while handling request {}",
+                request.getRequestURI(),
+                exception
+        );
+
         return buildResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 ErrorCode.INTERNAL_SERVER_ERROR,
-                "Hệ thống gặp lỗi. Vui lòng thử lại sau.",
+                "Hệ thống xảy ra lỗi. Vui lòng thử lại sau.",
                 Map.of(),
                 request
         );
+    }
+
+    private HttpStatus statusFor(ErrorCode errorCode) {
+        return switch (errorCode) {
+            case INVALID_CREDENTIALS,
+                 INVALID_REFRESH_TOKEN ->
+                    HttpStatus.UNAUTHORIZED;
+
+            case ACCOUNT_PENDING_ACTIVATION,
+                 ACCOUNT_DISABLED,
+                 ACCESS_DENIED ->
+                    HttpStatus.FORBIDDEN;
+
+            case ACCOUNT_LOCKED ->
+                    HttpStatus.LOCKED;
+
+            case USER_NOT_FOUND ->
+                    HttpStatus.NOT_FOUND;
+
+            case USERNAME_ALREADY_EXISTS,
+                 PHONE_ALREADY_EXISTS,
+                 EMAIL_ALREADY_EXISTS ->
+                    HttpStatus.CONFLICT;
+
+            case VALIDATION_ERROR ->
+                    HttpStatus.BAD_REQUEST;
+
+            case INTERNAL_SERVER_ERROR ->
+                    HttpStatus.INTERNAL_SERVER_ERROR;
+        };
     }
 
     private ResponseEntity<ErrorResponse> buildResponse(
@@ -149,7 +199,12 @@ public class GlobalExceptionHandler {
             Map<String, String> fieldErrors,
             HttpServletRequest request
     ) {
-        String traceId = resolveTraceId(request);
+        String traceId =
+                request.getHeader(TRACE_ID_HEADER);
+
+        if (traceId == null || traceId.isBlank()) {
+            traceId = UUID.randomUUID().toString();
+        }
 
         ErrorResponse response = ErrorResponse.of(
                 errorCode.name(),
@@ -159,23 +214,13 @@ public class GlobalExceptionHandler {
                 traceId
         );
 
-        return ResponseEntity
-                .status(status)
-                .header(TRACE_ID_HEADER, traceId)
-                .body(response);
-    }
+        HttpHeaders headers = new HttpHeaders();
+        headers.set(TRACE_ID_HEADER, traceId);
 
-    private String resolveTraceId(
-            HttpServletRequest request
-    ) {
-        String traceId = request.getHeader(
-                TRACE_ID_HEADER
+        return new ResponseEntity<>(
+                response,
+                headers,
+                status
         );
-
-        if (traceId == null || traceId.isBlank()) {
-            return UUID.randomUUID().toString();
-        }
-
-        return traceId;
     }
 }

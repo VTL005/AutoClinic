@@ -40,3 +40,10 @@ management:
   endpoint:
     health:
       show-details: always
+
+app:
+  jwt:
+    issuer: car-service-identity
+    secret: ${AUTOSERVICE_JWT_SECRET}
+    access-token-ttl: PT15M
+    refresh-token-ttl: P7D

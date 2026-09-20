@@ -1,7 +1,10 @@
 package com.autoservice.identityservice.controller;
 
 import com.autoservice.identityservice.common.ApiResponse;
+import com.autoservice.identityservice.dto.request.LoginRequest;
+import com.autoservice.identityservice.dto.request.RefreshTokenRequest;
 import com.autoservice.identityservice.dto.request.RegisterRequest;
+import com.autoservice.identityservice.dto.response.AuthTokenResponse;
 import com.autoservice.identityservice.dto.response.UserResponse;
 import com.autoservice.identityservice.service.AuthService;
 import jakarta.validation.Valid;
@@ -24,17 +27,60 @@ public class AuthController {
     public ResponseEntity<ApiResponse<UserResponse>> register(
             @Valid @RequestBody RegisterRequest request
     ) {
-        UserResponse user = authService.register(request);
-
-        ApiResponse<UserResponse> response =
-                ApiResponse.success(
-                        "Đăng ký tài khoản thành công. "
-                                + "Tài khoản đang chờ kích hoạt.",
-                        user
-                );
+        UserResponse user =
+                authService.register(request);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(response);
+                .body(
+                        ApiResponse.success(
+                                "Đăng ký tài khoản thành công. "
+                                        + "Tài khoản đang chờ kích hoạt.",
+                                user
+                        )
+                );
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<ApiResponse<AuthTokenResponse>> login(
+            @Valid @RequestBody LoginRequest request
+    ) {
+        AuthTokenResponse tokenResponse =
+                authService.login(request);
+
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        "Đăng nhập thành công.",
+                        tokenResponse
+                )
+        );
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<ApiResponse<AuthTokenResponse>> refresh(
+            @Valid @RequestBody RefreshTokenRequest request
+    ) {
+        AuthTokenResponse tokenResponse =
+                authService.refresh(request);
+
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        "Làm mới token thành công.",
+                        tokenResponse
+                )
+        );
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<Void>> logout(
+            @Valid @RequestBody RefreshTokenRequest request
+    ) {
+        authService.logout(request);
+
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        "Đăng xuất thành công."
+                )
+        );
     }
 }

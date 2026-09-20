@@ -10,7 +10,9 @@ import com.autoservice.identityservice.domain.entity.User;
 @Repository
 public interface UserRepository
         extends JpaRepository<User, Long> {
-
+    Optional<User> findByIdAndDeletedFalse(
+            Long id
+    );
     Optional<User> findByUsernameIgnoreCaseAndDeletedFalse(
             String username
     );

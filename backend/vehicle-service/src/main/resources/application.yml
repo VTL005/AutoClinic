@@ -45,3 +45,7 @@ app:
   jwt:
     issuer: car-service-identity
     secret: ${AUTOSERVICE_JWT_SECRET}
+
+  vin:
+    base-url: https://vpic.nhtsa.dot.gov/api/vehicles
+    cache-ttl: P7D

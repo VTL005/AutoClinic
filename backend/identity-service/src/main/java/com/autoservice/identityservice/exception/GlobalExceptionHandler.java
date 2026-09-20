@@ -3,7 +3,8 @@ package com.autoservice.identityservice.exception;
 import com.autoservice.identityservice.common.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,9 +18,13 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 
-@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger log =
+            LoggerFactory.getLogger(
+                    GlobalExceptionHandler.class
+            );
 
     private static final String TRACE_ID_HEADER =
             "X-Trace-Id";
@@ -59,12 +64,8 @@ public class GlobalExceptionHandler {
             BusinessException exception,
             HttpServletRequest request
     ) {
-        HttpStatus status = statusFor(
-                exception.getErrorCode()
-        );
-
         return buildResponse(
-                status,
+                statusFor(exception.getErrorCode()),
                 exception.getErrorCode(),
                 exception.getMessage(),
                 Map.of(),
@@ -81,8 +82,7 @@ public class GlobalExceptionHandler {
                 new LinkedHashMap<>();
 
         for (FieldError fieldError
-                : exception.getBindingResult()
-                .getFieldErrors()) {
+                : exception.getBindingResult().getFieldErrors()) {
 
             fieldErrors.putIfAbsent(
                     fieldError.getField(),
@@ -165,12 +165,14 @@ public class GlobalExceptionHandler {
     private HttpStatus statusFor(ErrorCode errorCode) {
         return switch (errorCode) {
             case INVALID_CREDENTIALS,
-                 INVALID_REFRESH_TOKEN ->
+                 INVALID_REFRESH_TOKEN,
+                 AUTHENTICATION_REQUIRED ->
                     HttpStatus.UNAUTHORIZED;
 
             case ACCOUNT_PENDING_ACTIVATION,
                  ACCOUNT_DISABLED,
-                 ACCESS_DENIED ->
+                 ACCESS_DENIED,
+                 CANNOT_UPDATE_OWN_ACCOUNT ->
                     HttpStatus.FORBIDDEN;
 
             case ACCOUNT_LOCKED ->
@@ -184,7 +186,8 @@ public class GlobalExceptionHandler {
                  EMAIL_ALREADY_EXISTS ->
                     HttpStatus.CONFLICT;
 
-            case VALIDATION_ERROR ->
+            case VALIDATION_ERROR,
+                 INVALID_ACCOUNT_STATUS ->
                     HttpStatus.BAD_REQUEST;
 
             case INTERNAL_SERVER_ERROR ->
@@ -200,19 +203,16 @@ public class GlobalExceptionHandler {
             HttpServletRequest request
     ) {
         String traceId =
-                request.getHeader(TRACE_ID_HEADER);
+                resolveTraceId(request);
 
-        if (traceId == null || traceId.isBlank()) {
-            traceId = UUID.randomUUID().toString();
-        }
-
-        ErrorResponse response = ErrorResponse.of(
-                errorCode.name(),
-                message,
-                fieldErrors,
-                request.getRequestURI(),
-                traceId
-        );
+        ErrorResponse response =
+                ErrorResponse.of(
+                        errorCode.name(),
+                        message,
+                        fieldErrors,
+                        request.getRequestURI(),
+                        traceId
+                );
 
         HttpHeaders headers = new HttpHeaders();
         headers.set(TRACE_ID_HEADER, traceId);
@@ -222,5 +222,19 @@ public class GlobalExceptionHandler {
                 headers,
                 status
         );
+    }
+
+    private String resolveTraceId(
+            HttpServletRequest request
+    ) {
+        String suppliedTraceId =
+                request.getHeader(TRACE_ID_HEADER);
+
+        if (suppliedTraceId == null
+                || suppliedTraceId.isBlank()) {
+            return UUID.randomUUID().toString();
+        }
+
+        return suppliedTraceId.trim();
     }
 }

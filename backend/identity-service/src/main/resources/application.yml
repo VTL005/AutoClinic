@@ -47,3 +47,11 @@ app:
     secret: ${AUTOSERVICE_JWT_SECRET}
     access-token-ttl: PT15M
     refresh-token-ttl: P7D
+
+  bootstrap-admin:
+    enabled: ${BOOTSTRAP_ADMIN_ENABLED:false}
+    username: ${BOOTSTRAP_ADMIN_USERNAME:admin}
+    password: ${BOOTSTRAP_ADMIN_PASSWORD:}
+    full-name: ${BOOTSTRAP_ADMIN_FULL_NAME:System Administrator}
+    phone: ${BOOTSTRAP_ADMIN_PHONE:+84900000000}
+    email: ${BOOTSTRAP_ADMIN_EMAIL:admin@autoservice.local}

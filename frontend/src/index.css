@@ -1,0 +1,146 @@
+:root {
+  font-family:
+          Inter,
+          "Segoe UI",
+          Roboto,
+          Helvetica,
+          Arial,
+          sans-serif;
+  color: #eaf2fb;
+  background: #07101c;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  min-height: 100%;
+  background: #07101c;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button:focus-visible {
+  outline: 2px solid #58a7ff;
+  outline-offset: 2px;
+}
+
+input:focus,
+input:focus-visible {
+  outline: none;
+}
+#root {
+  min-height: 100vh;
+}
+
+.temporary-dashboard {
+  display: grid;
+  min-height: 100vh;
+  padding: 30px;
+  place-items: center;
+  background:
+          radial-gradient(
+                  circle at top,
+                  rgba(28, 120, 235, 0.18),
+                  transparent 35%
+          ),
+          #07101c;
+  color: #ffffff;
+}
+
+.temporary-dashboard > div {
+  width: min(560px, 100%);
+  padding: 45px;
+  border: 1px solid #23344a;
+  border-radius: 22px;
+  background: #0d1928;
+  text-align: center;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+}
+
+.temporary-dashboard span {
+  color: #58a7ff;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.temporary-dashboard h1 {
+  margin: 15px 0;
+  font-size: 35px;
+}
+
+.temporary-dashboard p {
+  color: #93a4b8;
+}
+
+.temporary-dashboard button {
+  margin-top: 15px;
+  padding: 12px 24px;
+  border: 0;
+  border-radius: 10px;
+  background: #2588f5;
+  color: #ffffff;
+  font-weight: 700;
+  cursor: pointer;
+}
+:root {
+  --color-blue: #3b82f6;
+  --color-cyan: #22d3ee;
+  --color-purple: #8b5cf6;
+  --color-amber: #f59e0b;
+  --color-green: #22c55e;
+  --color-rose: #f43f5e;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+a,
+button,
+input {
+  transition:
+          color 220ms ease,
+          background-color 220ms ease,
+          border-color 220ms ease,
+          box-shadow 220ms ease,
+          transform 220ms ease,
+          opacity 220ms ease;
+}
+
+button:active {
+  transform: scale(0.97);
+}
+
+::selection {
+  background: rgba(59, 130, 246, 0.35);
+  color: #ffffff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

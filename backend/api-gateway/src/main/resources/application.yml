@@ -7,13 +7,8 @@ spring:
 
 security:
   jwt:
-    # Tạm thời tắt vì Identity Service chưa được xây dựng.
-    # Khi Identity Service hoàn thành, chỉ cần chuyển thành true.
-    enabled: false
-
-    # JWT_SECRET sẽ được truyền qua biến môi trường.
-    # Không lưu khóa bí mật thật trong Git.
-    secret: ${JWT_SECRET:}
+    enabled: true
+    secret: ${AUTOSERVICE_JWT_SECRET}
 
 management:
   endpoints:

@@ -53,9 +53,8 @@ public class RouteConfig {
                 // Booking Service - port 8083
                 .route("booking-service", route -> route
                         .path(
-                                "/api/v1/appointments/**",
-                                "/api/v1/service-types/**",
-                                "/api/v1/availability/**"
+                                "/api/v1/bookings/**",
+                                "/api/v1/admin/bookings/**"
                         )
                         .filters(filter -> filter
                                 .circuitBreaker(config -> config
@@ -70,7 +69,11 @@ public class RouteConfig {
 
                 // Repair Service - port 8084
                 .route("repair-service", route -> route
-                        .path("/api/v1/repair-orders/**")
+                        .path(
+                                "/api/v1/repair-orders/**",
+                                "/api/v1/mechanic/repair-orders/**",
+                                "/api/v1/customer/repair-orders/**"
+                        )
                         .filters(filter -> filter
                                 .circuitBreaker(config -> config
                                         .setName("repairServiceCircuitBreaker")
@@ -103,6 +106,8 @@ public class RouteConfig {
                 .route("billing-service", route -> route
                         .path(
                                 "/api/v1/invoices/**",
+                                "/api/v1/customer/invoices/**",
+                                "/api/v1/customer/payments/**",
                                 "/api/v1/payments/**"
                         )
                         .filters(filter -> filter

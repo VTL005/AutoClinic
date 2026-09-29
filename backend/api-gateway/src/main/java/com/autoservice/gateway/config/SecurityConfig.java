@@ -3,7 +3,7 @@ package com.autoservice.gateway.config;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-
+import java.util.Base64;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
@@ -143,7 +143,12 @@ public class SecurityConfig {
                                 "/fallback/**",
                                 "/api/v1/auth/login",
                                 "/api/v1/auth/register",
-                                "/api/v1/auth/refresh"
+                                "/api/v1/auth/refresh",
+                                "/api/v1/payments/payos/webhook",
+                                "/api/v1/payments/payos/return",
+                                "/api/v1/payments/payos/cancel",
+                                "/api/v1/payments/onepay/return",
+                                "/api/v1/payments/onepay/ipn"
                         )
                         .permitAll()
 
@@ -184,17 +189,29 @@ public class SecurityConfig {
             havingValue = "true"
     )
     public ReactiveJwtDecoder jwtDecoder(
-            @Value("${security.jwt.secret:}") String secret
+            @Value("${security.jwt.secret}") String secret
     ) {
-        if (secret == null || secret.length() < 32) {
+        byte[] secretBytes;
+
+        try {
+            secretBytes = Base64
+                    .getDecoder()
+                    .decode(secret);
+        } catch (IllegalArgumentException exception) {
             throw new IllegalStateException(
-                    "JWT_SECRET phải có ít nhất 32 ký tự "
-                            + "khi security.jwt.enabled=true."
+                    "JWT_SECRET không phải chuỗi Base64 hợp lệ.",
+                    exception
+            );
+        }
+
+        if (secretBytes.length < 32) {
+            throw new IllegalStateException(
+                    "JWT_SECRET sau khi giải mã phải có ít nhất 32 byte."
             );
         }
 
         SecretKey secretKey = new SecretKeySpec(
-                secret.getBytes(StandardCharsets.UTF_8),
+                secretBytes,
                 "HmacSHA256"
         );
 

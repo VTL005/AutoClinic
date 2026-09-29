@@ -1,0 +1,47 @@
+server:
+  port: 8085
+
+spring:
+  application:
+    name: inventory-service
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/inventory_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh&characterEncoding=UTF-8
+    username: inventory_user
+    password: ${INVENTORY_DB_PASSWORD}
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include:
+          - health
+          - info
+          - metrics
+
+  endpoint:
+    health:
+      show-details: always
+
+info:
+  application:
+    name: ${spring.application.name}
+    description: Inventory and spare parts service
+    version: 0.0.1-SNAPSHOT
+
+app:
+  jwt:
+    issuer: car-service-identity
+    secret: ${AUTOSERVICE_JWT_SECRET}

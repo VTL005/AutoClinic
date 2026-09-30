@@ -1,0 +1,65 @@
+server:
+  port: 8086
+
+spring:
+  application:
+    name: billing-service
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/billing_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh&characterEncoding=UTF-8
+    username: billing_user
+    password: ${BILLING_DB_PASSWORD}
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include:
+          - health
+          - info
+          - metrics
+
+  endpoint:
+    health:
+      show-details: always
+
+info:
+  application:
+    name: ${spring.application.name}
+    description: Billing and payment service
+    version: 0.0.1-SNAPSHOT
+
+app:
+  jwt:
+    issuer: car-service-identity
+    secret: ${AUTOSERVICE_JWT_SECRET}
+
+  services:
+    repair:
+      base-url: http://localhost:8084
+
+    inventory:
+      base-url: http://localhost:8085
+  payment:
+    payos:
+      return-url: http://127.0.0.1:8080/api/v1/payments/payos/return
+      cancel-url: http://127.0.0.1:8080/api/v1/payments/payos/cancel
+    onepay:
+      gateway-url: ${ONEPAY_GATEWAY_URL:https://mtf.onepay.vn/paygate/vpcpay.op}
+      merchant-id: ${ONEPAY_MERCHANT_ID:}
+      access-code: ${ONEPAY_ACCESS_CODE:}
+      hash-key: ${ONEPAY_HASH_KEY:}
+      return-url: http://127.0.0.1:8080/api/v1/payments/onepay/return
+      ipn-url: ${ONEPAY_IPN_URL:http://127.0.0.1:8086/api/v1/payments/onepay/ipn}

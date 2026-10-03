@@ -188,7 +188,11 @@ public class GlobalExceptionHandler {
                     HttpStatus.CONFLICT;
 
             case VALIDATION_ERROR,
-                 INVALID_ACCOUNT_STATUS ->
+                 INVALID_ACCOUNT_STATUS,
+                 PROFILE_UPDATE_NO_CHANGES,
+                 CURRENT_PASSWORD_INCORRECT,
+                 PASSWORD_CONFIRMATION_MISMATCH,
+                 NEW_PASSWORD_SAME_AS_CURRENT ->
                     HttpStatus.BAD_REQUEST;
 
             case INTERNAL_SERVER_ERROR ->

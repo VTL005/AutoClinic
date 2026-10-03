@@ -34,7 +34,16 @@ public interface MechanicProfileRepository
     List<MechanicProfile> findAllByEmploymentStatus(
             EmploymentStatus employmentStatus
     );
-
+    @Query("""
+        SELECT profile
+        FROM MechanicProfile profile
+        JOIN FETCH profile.user user
+        WHERE user.id = :userId
+          AND user.deleted = false
+        """)
+    Optional<MechanicProfile> findDetailedByUserId(
+            @Param("userId") Long userId
+    );
     @Query("""
             SELECT profile
             FROM MechanicProfile profile

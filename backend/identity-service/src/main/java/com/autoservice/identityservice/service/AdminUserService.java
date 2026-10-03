@@ -47,7 +47,21 @@ public class AdminUserService {
 
         return PageResponse.from(result);
     }
+    @Transactional(readOnly = true)
+    public AdminUserResponse getUserById(
+            Long userId
+    ) {
+        User user = userRepository
+                .findByIdAndDeletedFalse(userId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                ErrorCode.USER_NOT_FOUND,
+                                "Không tìm thấy tài khoản."
+                        )
+                );
 
+        return toResponse(user);
+    }
     @Transactional
     public AdminUserResponse updateAccountStatus(
             Long currentAdminId,

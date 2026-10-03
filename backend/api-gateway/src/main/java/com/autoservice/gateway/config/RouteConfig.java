@@ -123,7 +123,7 @@ public class RouteConfig {
 
                 // Notification Service - port 8087
                 .route("notification-service", route -> route
-                        .path("/api/v1/notifications/**")
+                        .path("/api/v1/customer/notifications/**")
                         .filters(filter -> filter
                                 .circuitBreaker(config -> config
                                         .setName("notificationServiceCircuitBreaker")

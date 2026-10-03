@@ -86,7 +86,22 @@ public class AdminMechanicController {
                 )
         );
     }
+    @GetMapping("/by-user/{userId}")
+    public ResponseEntity<ApiResponse<MechanicResponse>>
+    getMechanicByUserId(
+            @PathVariable("userId")
+            Long userId
+    ) {
+        MechanicResponse mechanic =
+                mechanicService.getMechanicByUserId(userId);
 
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        "Lấy thông tin kỹ thuật viên thành công.",
+                        mechanic
+                )
+        );
+    }
     @GetMapping("/{profileId}")
     public ResponseEntity<ApiResponse<MechanicResponse>>
     getMechanic(

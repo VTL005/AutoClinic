@@ -44,6 +44,16 @@ public interface UserRepository
             String email
     );
 
+    boolean existsByPhoneAndIdNot(
+            String phone,
+            Long userId
+    );
+
+    boolean existsByEmailIgnoreCaseAndIdNot(
+            String email,
+            Long userId
+    );
+
     @Query("""
             SELECT user
             FROM User user

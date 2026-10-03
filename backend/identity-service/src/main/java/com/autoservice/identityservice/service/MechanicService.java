@@ -121,6 +121,22 @@ public class MechanicService {
 
         return toResponse(profile);
     }
+    @Transactional(readOnly = true)
+    public MechanicResponse getMechanicByUserId(
+            Long userId
+    ) {
+        MechanicProfile profile =
+                mechanicProfileRepository
+                        .findDetailedByUserId(userId)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        ErrorCode.MECHANIC_PROFILE_NOT_FOUND,
+                                        "Không tìm thấy hồ sơ kỹ thuật viên."
+                                )
+                        );
+
+        return toResponse(profile);
+    }
 
     @Transactional
     public MechanicResponse updateMechanic(

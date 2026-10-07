@@ -73,7 +73,7 @@ public class AdminBootstrapRunner implements ApplicationRunner {
                 passwordEncoder.encode(password)
         );
         admin.setFullName(fullName.trim());
-        admin.setPhone(phone.trim());
+        admin.setPhone(com.autoservice.identityservice.service.PhoneNumbers.normalize(phone));
         admin.setEmail(normalizeEmail(email));
         admin.setRole(Role.ADMIN);
         admin.setAccountStatus(AccountStatus.ACTIVE);
@@ -113,10 +113,10 @@ public class AdminBootstrapRunner implements ApplicationRunner {
     }
 
     private void validateUniqueContactInformation() {
-        String normalizedPhone = phone.trim();
+        String normalizedPhone = com.autoservice.identityservice.service.PhoneNumbers.normalize(phone);
         String normalizedEmail = normalizeEmail(email);
 
-        if (userRepository.existsByPhone(normalizedPhone)) {
+        if (userRepository.existsByPhone(normalizedPhone) || userRepository.existsByCanonicalPhone(normalizedPhone)) {
             throw new IllegalStateException(
                     "Bootstrap Admin phone already exists"
             );

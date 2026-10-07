@@ -4,6 +4,7 @@ import com.autoservice.identityservice.domain.entity.User;
 import com.autoservice.identityservice.domain.enums.AccountStatus;
 import com.autoservice.identityservice.domain.enums.Role;
 import com.autoservice.identityservice.dto.request.UpdateAccountStatusRequest;
+import com.autoservice.identityservice.dto.request.AdminResetPasswordRequest;
 import com.autoservice.identityservice.dto.response.AdminUserResponse;
 import com.autoservice.identityservice.dto.response.PageResponse;
 import com.autoservice.identityservice.exception.BusinessException;
@@ -14,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -24,6 +26,7 @@ public class AdminUserService {
 
     private final UserRepository userRepository;
     private final RefreshTokenService refreshTokenService;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional(readOnly = true)
     public PageResponse<AdminUserResponse> getUsers(
@@ -104,6 +107,41 @@ public class AdminUserService {
                     savedUser.getId()
             );
         }
+
+        return toResponse(savedUser);
+    }
+
+    @Transactional
+    public AdminUserResponse resetPassword(
+            Long targetUserId,
+            AdminResetPasswordRequest request
+    ) {
+        if (!request.newPassword().equals(request.confirmPassword())) {
+            throw new BusinessException(
+                    ErrorCode.PASSWORD_CONFIRMATION_MISMATCH,
+                    "Xác nhận mật khẩu không khớp."
+            );
+        }
+
+        User user = userRepository
+                .findByIdAndDeletedFalse(targetUserId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                ErrorCode.USER_NOT_FOUND,
+                                "Không tìm thấy tài khoản."
+                        )
+                );
+
+        user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
+        user.setFailedLoginCount(0);
+        user.setLockedUntil(null);
+
+        if (user.getAccountStatus() == AccountStatus.LOCKED) {
+            user.setAccountStatus(AccountStatus.ACTIVE);
+        }
+
+        User savedUser = userRepository.saveAndFlush(user);
+        refreshTokenService.revokeAllForUser(savedUser.getId());
 
         return toResponse(savedUser);
     }

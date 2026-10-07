@@ -42,7 +42,7 @@ public record CreateMechanicRequest(
 
         @NotBlank(message = "Số điện thoại không được để trống")
         @Pattern(
-                regexp = "^\\+?[0-9]{9,15}$",
+                regexp = com.autoservice.identityservice.service.PhoneNumbers.INPUT_PATTERN,
                 message = "Số điện thoại không hợp lệ"
         )
         String phone,

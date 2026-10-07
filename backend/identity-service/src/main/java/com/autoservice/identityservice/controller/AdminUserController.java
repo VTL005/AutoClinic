@@ -4,6 +4,7 @@ import com.autoservice.identityservice.common.ApiResponse;
 import com.autoservice.identityservice.domain.enums.AccountStatus;
 import com.autoservice.identityservice.domain.enums.Role;
 import com.autoservice.identityservice.dto.request.UpdateAccountStatusRequest;
+import com.autoservice.identityservice.dto.request.AdminResetPasswordRequest;
 import com.autoservice.identityservice.dto.response.AdminUserResponse;
 import com.autoservice.identityservice.dto.response.PageResponse;
 import com.autoservice.identityservice.service.AdminUserService;
@@ -107,6 +108,23 @@ public class AdminUserController {
         return ResponseEntity.ok(
                 ApiResponse.success(
                         "Cập nhật trạng thái tài khoản thành công.",
+                        user
+                )
+        );
+    }
+
+    @PatchMapping("/{userId}/password")
+    public ResponseEntity<ApiResponse<AdminUserResponse>>
+    resetPassword(
+            @PathVariable Long userId,
+            @Valid @RequestBody AdminResetPasswordRequest request
+    ) {
+        AdminUserResponse user =
+                adminUserService.resetPassword(userId, request);
+
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        "Đặt lại mật khẩu thành công.",
                         user
                 )
         );

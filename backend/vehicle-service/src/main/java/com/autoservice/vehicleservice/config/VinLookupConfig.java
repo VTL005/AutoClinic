@@ -3,6 +3,7 @@ package com.autoservice.vehicleservice.config;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 
 @Configuration
@@ -13,12 +14,16 @@ public class VinLookupConfig {
     public RestClient nhtsaRestClient(
             VinLookupProperties properties
     ) {
+        SimpleClientHttpRequestFactory factory =
+                new SimpleClientHttpRequestFactory();
+
+        factory.setConnectTimeout(3000);
+        factory.setReadTimeout(5000);
+
         return RestClient.builder()
                 .baseUrl(properties.baseUrl())
-                .defaultHeader(
-                        "Accept",
-                        "application/json"
-                )
+                .requestFactory(factory)
+                .defaultHeader("Accept", "application/json")
                 .build();
     }
 }

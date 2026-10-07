@@ -141,6 +141,14 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponse> handleDuplicateDatabase(
+            org.springframework.dao.DataIntegrityViolationException exception,
+            HttpServletRequest request) {
+        return buildResponse(HttpStatus.CONFLICT, ErrorCode.VALIDATION_ERROR,
+                "Thông tin đã được sử dụng. Kiểm tra số điện thoại, email hoặc tên đăng nhập trước khi gửi lại.", Map.of(), request);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse>
     handleUnexpectedException(
@@ -187,13 +195,17 @@ public class GlobalExceptionHandler {
                  EMAIL_ALREADY_EXISTS ->
                     HttpStatus.CONFLICT;
 
-            case VALIDATION_ERROR,
+            case ACTIVATION_CODE_INVALID,
+                 VALIDATION_ERROR,
                  INVALID_ACCOUNT_STATUS,
                  PROFILE_UPDATE_NO_CHANGES,
                  CURRENT_PASSWORD_INCORRECT,
                  PASSWORD_CONFIRMATION_MISMATCH,
                  NEW_PASSWORD_SAME_AS_CURRENT ->
                     HttpStatus.BAD_REQUEST;
+
+            case ACTIVATION_ATTEMPTS_EXCEEDED,
+                 ACTIVATION_RATE_LIMITED -> HttpStatus.TOO_MANY_REQUESTS;
 
             case INTERNAL_SERVER_ERROR ->
                     HttpStatus.INTERNAL_SERVER_ERROR;

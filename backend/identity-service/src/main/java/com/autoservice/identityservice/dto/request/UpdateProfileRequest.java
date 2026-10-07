@@ -14,7 +14,7 @@ public record UpdateProfileRequest(
         String fullName,
 
         @Pattern(
-                regexp = "^\\+?[1-9]\\d{7,14}$",
+                regexp = com.autoservice.identityservice.service.PhoneNumbers.INPUT_PATTERN,
                 message = "Số điện thoại không đúng định dạng"
         )
         String phone,

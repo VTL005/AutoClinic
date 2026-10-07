@@ -144,6 +144,7 @@ public class SecurityConfig {
                                 "/api/v1/auth/login",
                                 "/api/v1/auth/register",
                                 "/api/v1/auth/refresh",
+                                "/api/v1/auth/logout",
                                 "/api/v1/payments/payos/webhook",
                                 "/api/v1/payments/payos/return",
                                 "/api/v1/payments/payos/cancel",
@@ -152,6 +153,28 @@ public class SecurityConfig {
                         )
                         .permitAll()
 
+                        .pathMatchers(
+                                HttpMethod.POST,
+                                "/api/v1/auth/activation/request",
+                                "/api/v1/auth/activation/confirm"
+                        )
+                        .permitAll()
+
+                        .pathMatchers("/api/v1/admin/**",
+                                "/api/v1/internal/notifications/**",
+                                "/api/v1/repair-orders/**", "/api/v1/parts/**",
+                                "/api/v1/inventory/**", "/api/v1/invoices/**")
+                        .hasRole("ADMIN")
+                        .pathMatchers("/api/v1/customer/**")
+                        .hasRole("CUSTOMER")
+                        .pathMatchers("/api/v1/mechanic/**", "/api/v1/mechanics/**")
+                        .hasRole("MECHANIC")
+                        .pathMatchers(HttpMethod.GET, "/api/v1/bookings/services")
+                        .hasAnyRole("CUSTOMER", "ADMIN", "MECHANIC")
+                        .pathMatchers(HttpMethod.GET, "/api/v1/bookings/availability")
+                        .hasAnyRole("CUSTOMER", "ADMIN")
+                        .pathMatchers("/api/v1/bookings/**")
+                        .hasRole("CUSTOMER")
                         .anyExchange()
                         .authenticated()
                 )

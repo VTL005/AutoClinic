@@ -108,7 +108,9 @@ public class RouteConfig {
                                 "/api/v1/invoices/**",
                                 "/api/v1/customer/invoices/**",
                                 "/api/v1/customer/payments/**",
-                                "/api/v1/payments/**"
+                                "/api/v1/payments/**",
+                                "/api/v1/admin/payments/**",
+                                "/api/v1/admin/maintenance-reminders/**"
                         )
                         .filters(filter -> filter
                                 .circuitBreaker(config -> config
@@ -123,7 +125,10 @@ public class RouteConfig {
 
                 // Notification Service - port 8087
                 .route("notification-service", route -> route
-                        .path("/api/v1/customer/notifications/**")
+                        .path(
+                                "/api/v1/customer/notifications/**",
+                                "/api/v1/internal/notifications/**"
+                        )
                         .filters(filter -> filter
                                 .circuitBreaker(config -> config
                                         .setName("notificationServiceCircuitBreaker")

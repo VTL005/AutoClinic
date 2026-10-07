@@ -53,13 +53,13 @@ public class UserService {
         }
 
         if (request.phone() != null) {
-            String phone = request.phone().trim();
+            String phone = PhoneNumbers.normalize(request.phone());
 
             if (!Objects.equals(
                     user.getPhone(),
                     phone
             )) {
-                if (userRepository.existsByPhone(phone)) {
+                if (userRepository.existsByCanonicalPhoneAndIdNot(phone, userId)) {
                     throw new DuplicateResourceException(
                             ErrorCode.PHONE_ALREADY_EXISTS,
                             "Số điện thoại đã được sử dụng."

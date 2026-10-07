@@ -4,6 +4,7 @@ import com.autoservice.identityservice.domain.entity.User;
 import com.autoservice.identityservice.domain.enums.AccountStatus;
 import com.autoservice.identityservice.domain.enums.Role;
 import com.autoservice.identityservice.dto.request.UpdateAccountStatusRequest;
+import com.autoservice.identityservice.dto.request.AdminResetPasswordRequest;
 import com.autoservice.identityservice.dto.response.AdminUserResponse;
 import com.autoservice.identityservice.dto.response.PageResponse;
 import com.autoservice.identityservice.exception.BusinessException;
@@ -19,6 +20,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.Instant;
 import java.util.List;
@@ -42,6 +44,9 @@ class AdminUserServiceTest {
 
     @Mock
     private RefreshTokenService refreshTokenService;
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
 
     @InjectMocks
     private AdminUserService adminUserService;
@@ -248,5 +253,55 @@ class AdminUserServiceTest {
 
         verify(refreshTokenService, never())
                 .revokeAllForUser(any());
+    }
+
+    @Test
+    void resetPasswordShouldEncodeUnlockAndRevokeTokens() {
+        customer.setAccountStatus(AccountStatus.LOCKED);
+        customer.setFailedLoginCount(5);
+        customer.setLockedUntil(Instant.now().plusSeconds(900));
+
+        when(userRepository.findByIdAndDeletedFalse(1L))
+                .thenReturn(Optional.of(customer));
+        when(passwordEncoder.encode("Mechanic@2026"))
+                .thenReturn("encoded-password");
+        when(userRepository.saveAndFlush(any(User.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        AdminUserResponse response = adminUserService.resetPassword(
+                1L,
+                new AdminResetPasswordRequest(
+                        "Mechanic@2026",
+                        "Mechanic@2026"
+                )
+        );
+
+        assertEquals("encoded-password", customer.getPasswordHash());
+        assertEquals(AccountStatus.ACTIVE, response.accountStatus());
+        assertEquals(0, response.failedLoginCount());
+        assertNull(response.lockedUntil());
+        verify(refreshTokenService).revokeAllForUser(1L);
+    }
+
+    @Test
+    void resetPasswordShouldRejectMismatchedConfirmation() {
+        BusinessException exception = assertThrows(
+                BusinessException.class,
+                () -> adminUserService.resetPassword(
+                        1L,
+                        new AdminResetPasswordRequest(
+                                "Mechanic@2026",
+                                "Different@2026"
+                        )
+                )
+        );
+
+        assertEquals(
+                ErrorCode.PASSWORD_CONFIRMATION_MISMATCH,
+                exception.getErrorCode()
+        );
+        verify(userRepository, never()).findByIdAndDeletedFalse(any());
+        verify(userRepository, never()).saveAndFlush(any());
+        verify(refreshTokenService, never()).revokeAllForUser(any());
     }
 }

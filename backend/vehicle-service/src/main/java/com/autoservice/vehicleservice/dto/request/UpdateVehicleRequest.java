@@ -2,6 +2,7 @@ package com.autoservice.vehicleservice.dto.request;
 
 import com.autoservice.vehicleservice.domain.enums.FuelType;
 import com.autoservice.vehicleservice.domain.enums.TransmissionType;
+import com.autoservice.vehicleservice.validation.CurrentOrPastYear;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -41,10 +42,7 @@ public record UpdateVehicleRequest(
                 value = 1886,
                 message = "Năm sản xuất không được nhỏ hơn 1886"
         )
-        @Max(
-                value = 2100,
-                message = "Năm sản xuất không được lớn hơn 2100"
-        )
+        @CurrentOrPastYear
         Integer manufactureYear,
 
         @Size(

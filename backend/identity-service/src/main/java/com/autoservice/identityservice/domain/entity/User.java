@@ -66,6 +66,13 @@ public class User {
     )
     private String phone;
 
+    @Column(name = "canonical_phone", insertable = false, updatable = false, length = 15)
+    private String canonicalPhone;
+
+    @Builder.Default
+    @Column(name = "is_guest", nullable = false)
+    private boolean guest = false;
+
     @Column(
             name = "email",
             unique = true,

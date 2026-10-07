@@ -21,6 +21,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Locale;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -37,13 +39,14 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final RefreshTokenService refreshTokenService;
+    private final AccountActivationService accountActivationService;
 
     @Transactional
     public UserResponse register(RegisterRequest request) {
         String username =
                 normalizeUsername(request.username());
 
-        String phone = request.phone().trim();
+        String phone = PhoneNumbers.normalize(request.phone());
         String email = normalizeEmail(request.email());
 
         validateUniqueInformation(
@@ -68,6 +71,8 @@ public class AuthService {
         User savedUser =
                 userRepository.saveAndFlush(user);
 
+        accountActivationService.issueForNewUser(savedUser);
+
         return toUserResponse(savedUser);
     }
 
@@ -75,20 +80,12 @@ public class AuthService {
             noRollbackFor = BusinessException.class
     )
     public AuthTokenResponse login(LoginRequest request) {
-        String username =
-                normalizeUsername(request.username());
+        User user = findLoginUser(request.username());
 
-        User user = userRepository
-                .findByUsernameIgnoreCaseAndDeletedFalse(
-                        username
-                )
-                .orElseThrow(() ->
-                        new BusinessException(
-                                ErrorCode.INVALID_CREDENTIALS,
-                                "Tên đăng nhập hoặc mật khẩu không đúng."
-                        )
-                );
-
+        if (user.isGuest()) {
+            throw new BusinessException(ErrorCode.ACCOUNT_PENDING_ACTIVATION,
+                    "Đây là hồ sơ khách trực tiếp, chưa có tài khoản đăng nhập.");
+        }
         releaseTemporaryLockIfExpired(user);
         ensureAccountIsNotLocked(user);
 
@@ -100,7 +97,7 @@ public class AuthService {
 
             throw new BusinessException(
                     ErrorCode.INVALID_CREDENTIALS,
-                    "Tên đăng nhập hoặc mật khẩu không đúng."
+                    "Thông tin đăng nhập hoặc mật khẩu không đúng."
             );
         }
 
@@ -141,6 +138,31 @@ public class AuthService {
         );
     }
 
+    private User findLoginUser(String rawIdentifier) {
+        String identifier = LoginIdentifierPolicy.normalize(rawIdentifier);
+        Map<Long, User> candidates = new LinkedHashMap<>();
+
+        userRepository.findByUsernameIgnoreCaseAndDeletedFalse(identifier)
+                .ifPresent(user -> candidates.put(user.getId(), user));
+
+        if (identifier.contains("@")) {
+            userRepository.findByEmailIgnoreCaseAndDeletedFalse(identifier)
+                    .ifPresent(user -> candidates.put(user.getId(), user));
+        } else {
+            for (String phone : LoginIdentifierPolicy.phoneCandidates(identifier)) {
+                userRepository.findByPhoneAndDeletedFalse(phone)
+                        .ifPresent(user -> candidates.put(user.getId(), user));
+            }
+        }
+
+        // Refuse an identifier that points to different accounts in different fields.
+        if (candidates.size() != 1) {
+            throw new BusinessException(ErrorCode.INVALID_CREDENTIALS,
+                    "Thông tin đăng nhập hoặc mật khẩu không đúng.");
+        }
+        return candidates.values().iterator().next();
+    }
+
     private AuthTokenResponse issueTokenPair(User user) {
         String accessToken =
                 jwtService.generateAccessToken(user);
@@ -168,7 +190,8 @@ public class AuthService {
 
         user.setFailedLoginCount(newFailedCount);
 
-        if (newFailedCount >= MAX_FAILED_LOGIN_ATTEMPTS) {
+        if (newFailedCount >= MAX_FAILED_LOGIN_ATTEMPTS
+                && user.getAccountStatus() == AccountStatus.ACTIVE) {
             user.setAccountStatus(
                     AccountStatus.LOCKED
             );
@@ -225,6 +248,10 @@ public class AuthService {
     private void ensureAccountCanAuthenticate(
             User user
     ) {
+        if (user.isGuest()) {
+            throw new BusinessException(ErrorCode.ACCOUNT_PENDING_ACTIVATION,
+                    "Hồ sơ khách trực tiếp chưa có tài khoản đăng nhập.");
+        }
         if (user.getAccountStatus()
                 == AccountStatus.PENDING_ACTIVATION) {
             throw new BusinessException(
@@ -268,7 +295,7 @@ public class AuthService {
             );
         }
 
-        if (userRepository.existsByPhone(phone)) {
+        if ((userRepository.existsByPhone(phone) || userRepository.existsByCanonicalPhone(phone))) {
             throw new DuplicateResourceException(
                     ErrorCode.PHONE_ALREADY_EXISTS,
                     "Số điện thoại đã được sử dụng."

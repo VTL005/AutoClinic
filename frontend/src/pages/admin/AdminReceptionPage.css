@@ -1,0 +1,22 @@
+.reception-page { max-width: 1440px; margin: 0 auto; padding: 12px 0 38px; color: #294a6b; }
+.reception-heading { margin: 0 0 24px; max-width: 760px; }
+.reception-heading > span { color: #068ab6; font-weight: 850; letter-spacing: .13em; font-size: .75rem; }
+.reception-heading h1 { margin: 8px 0; font-size: clamp(2rem, 4vw, 3rem); letter-spacing: -.04em; }
+.reception-heading p { margin: 0; color: #58718f; line-height: 1.6; }
+.reception-alert { margin: 0 0 18px; padding: 13px 16px; border: 1px solid #f2bb71; border-radius: 14px; background: #fff7e8; color: #8d5300; font-weight: 700; }
+.reception-grid { display: grid; grid-template-columns: minmax(280px, .92fr) minmax(340px, 1.08fr) minmax(360px, 1.18fr); align-items: start; gap: 20px; }
+.reception-card { min-width: 0; background: linear-gradient(145deg, rgba(255,255,255,.96), rgba(247,251,255,.92)); border: 1px solid #c9ddec; border-radius: 22px; padding: 21px; display: grid; gap: 14px; box-shadow: 0 15px 32px rgba(35, 75, 120, .1); }
+.reception-card-heading { display: flex; align-items: flex-start; gap: 10px; padding-bottom: 4px; border-bottom: 1px solid #dce8f2; }
+.reception-step { display: grid; place-items: center; flex: 0 0 29px; height: 29px; margin-top: 1px; border-radius: 9px; background: #dff2ff; color: #05749d; font-weight: 900; }
+.vehicle-card .reception-step { background: #fff0cf; color: #b36a00; }.booking-card .reception-step { background: #e9e2ff; color: #7058bd; }
+.reception-card h2 { display: flex; align-items: center; gap: 7px; margin: 0; color: #234b73; font-size: 1.13rem; font-weight: 750; }.vehicle-card h2 svg { color: #cd8000; }.booking-card h2 svg { color: #7c62d1; }
+.reception-card-heading p { margin: 4px 0 12px; color: #66809a; font-size: .78rem; line-height: 1.45; }
+.reception-card label { min-width: 0; display: grid; gap: 6px; color: #587592; font-size: .84rem; font-weight: 700; }.reception-card label small { color: #839ab0; font-weight: 550; }
+.reception-card input, .reception-card select, .reception-card textarea { box-sizing: border-box; min-width: 0; width: 100%; border: 1px solid #b8cfe3; border-radius: 10px; padding: 10px 12px; font: inherit; color: #294a6b; background: #fff; outline: none; transition: border-color .16s, box-shadow .16s; }
+.reception-card input:focus, .reception-card select:focus, .reception-card textarea:focus { border-color: #1299c8; box-shadow: 0 0 0 3px rgba(18,153,200,.13); }.reception-card select:disabled { color: #91a4b5; background: #f1f6fa; }
+.reception-card textarea { min-height: 94px; resize: vertical; line-height: 1.45; }.reception-two-columns { min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 11px; }
+.reception-card button { min-width: 0; border: 0; border-radius: 11px; padding: 12px 14px; background: linear-gradient(105deg, #087ec8, #13a9c4); color: white; font-weight: 750; cursor: pointer; box-shadow: 0 7px 15px rgba(10, 135, 190, .18); }.vehicle-card button { background: linear-gradient(105deg, #e28a09, #f2a817); }.booking-card button { background: linear-gradient(105deg, #6756c7, #248bc9); }
+.reception-card button:disabled { opacity: .52; cursor: wait; box-shadow: none; }.reception-success, .reception-error { margin: -3px 0 0; font-size: .82rem; font-weight: 750; }.reception-success { color: #087c63; }.reception-error { color: #c33756; }
+.reception-guidance { margin: -3px 0 0; padding: 10px 11px; border: 1px solid #f1cd8a; border-radius: 10px; background: #fff7e8; color: #90611a; font-size: .8rem; line-height: 1.45; }
+@media (max-width: 1180px) { .reception-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }.booking-card { grid-column: 1 / -1; } }
+@media (max-width: 760px) { .reception-page { padding-bottom: 22px; }.reception-grid { grid-template-columns: 1fr; }.booking-card { grid-column: auto; }.reception-two-columns { grid-template-columns: 1fr; } }

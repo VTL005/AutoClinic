@@ -52,11 +52,12 @@ public record RegisterRequest(
                 message = "Số điện thoại không được để trống"
         )
         @Pattern(
-                regexp = "^\\+?[1-9]\\d{7,14}$",
+                regexp = com.autoservice.identityservice.service.PhoneNumbers.INPUT_PATTERN,
                 message = "Số điện thoại không đúng định dạng"
         )
         String phone,
 
+        @NotBlank(message = "Email không được để trống để nhận mã kích hoạt.")
         @Email(
                 message = "Email không đúng định dạng"
         )

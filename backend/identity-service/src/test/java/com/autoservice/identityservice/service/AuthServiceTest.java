@@ -30,6 +30,8 @@ class AuthServiceTest {
 
     @Mock
     private UserRepository userRepository;
+    @Mock
+    private AccountActivationService accountActivationService;
 
     @Mock
     private PasswordEncoder passwordEncoder;

@@ -43,7 +43,7 @@ public class MechanicService {
         String username =
                 normalizeUsername(request.username());
 
-        String phone = request.phone().trim();
+        String phone = PhoneNumbers.normalize(request.phone());
 
         String email =
                 normalizeEmail(request.email());
@@ -190,7 +190,7 @@ public class MechanicService {
             );
         }
 
-        if (userRepository.existsByPhone(phone)) {
+        if ((userRepository.existsByPhone(phone) || userRepository.existsByCanonicalPhone(phone))) {
             throw new DuplicateResourceException(
                     ErrorCode.PHONE_ALREADY_EXISTS,
                     "Số điện thoại đã được sử dụng."

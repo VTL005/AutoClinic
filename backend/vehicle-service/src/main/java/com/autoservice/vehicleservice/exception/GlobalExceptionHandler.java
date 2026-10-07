@@ -182,7 +182,7 @@ public class GlobalExceptionHandler {
                  LICENSE_PLATE_ALREADY_EXISTS ->
                     HttpStatus.CONFLICT;
 
-            case VIN_LOOKUP_FAILED ->
+            case VIN_LOOKUP_FAILED, CUSTOMER_LOOKUP_FAILED ->
                     HttpStatus.BAD_GATEWAY;
 
             case AUTHENTICATION_REQUIRED ->
